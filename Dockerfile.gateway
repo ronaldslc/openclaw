@@ -1,0 +1,42 @@
+ARG BASE_IMAGE=openclaw:local
+FROM ${BASE_IMAGE}
+
+# Switch to root to install system dependencies
+USER root
+
+# Install Python, uv, Chrome, util-linux (for setpriv), and shadow/passwd (for usermod/groupadd)
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    python3 \
+    python3-pip \
+    python3-venv \
+    wget \
+    gnupg \
+    ca-certificates \
+    curl \
+    util-linux \
+    passwd \
+    xvfb \
+    dbus-x11 \
+    libnss3 \
+    libgbm1 \
+    libasound2 \
+    fonts-noto-cjk \
+    && install -m 0755 -d /etc/apt/keyrings \
+    && curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg \
+    && chmod a+r /etc/apt/keyrings/docker.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian bookworm stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null \
+    && apt-get update && apt-get install -y --no-install-recommends docker-ce-cli \
+    && curl -LsSf https://astral.sh/uv/install.sh | UV_INSTALL_DIR=/usr/local/bin sh \
+    && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list \
+    && apt-get update && apt-get install -y google-chrome-stable --no-install-recommends \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Add ~/.local/bin to PATH so skills installed by uv are visible to OpenClaw
+ENV PATH="/home/node/.local/bin:${PATH}"
+
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["node", "openclaw.mjs", "gateway", "--allow-unconfigured"]
