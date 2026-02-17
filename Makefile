@@ -1,11 +1,15 @@
 COMPOSE = docker compose -f docker-compose.yml -f docker-compose.extra.yml
+BASE_IMAGE ?= openclaw:local
 
-.PHONY: start cli root build clawhub
+.PHONY: start cli root build build-base clawhub
 
 start:
 	$(COMPOSE) up -d
 
-build:
+build-base:
+	docker build -t $(BASE_IMAGE) .
+
+build: build-base
 	$(COMPOSE) build
 
 cli:
