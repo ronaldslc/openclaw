@@ -71,7 +71,7 @@ async function completeVertexMedia(params: {
 export const googleVertexProvider: MediaUnderstandingProvider = {
   id: "google-vertex",
   capabilities: ["image", "audio", "video"],
-  
+
   transcribeAudio: async (params: AudioTranscriptionRequest): Promise<AudioTranscriptionResult> => {
     return completeVertexMedia({
       buffer: params.buffer,

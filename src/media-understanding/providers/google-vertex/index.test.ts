@@ -1,6 +1,6 @@
+import * as piAi from "@mariozechner/pi-ai";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { googleVertexProvider } from "./index.js";
-import * as piAi from "@mariozechner/pi-ai";
 
 vi.mock("@mariozechner/pi-ai", () => ({
   getModel: vi.fn(() => ({ provider: "google-vertex", model: "gemini-3-flash-preview" })),
@@ -12,6 +12,12 @@ describe("googleVertexProvider", () => {
   const mockParams = {
     buffer: mockBuffer,
     timeoutMs: 5000,
+    fileName: "test.wav",
+    apiKey: "test-api-key",
+    model: "gemini-3-flash-preview",
+    provider: "google-vertex",
+    agentDir: "/tmp",
+    cfg: {} as any,
   };
 
   beforeEach(() => {
@@ -28,7 +34,7 @@ describe("googleVertexProvider", () => {
       model: "gemini-3-flash-preview",
     } as any);
 
-    const result = await googleVertexProvider.transcribeAudio(mockParams);
+    const result = await googleVertexProvider.transcribeAudio!(mockParams);
 
     expect(result.text).toBe("Transcribed text");
     expect(piAi.completeSimple).toHaveBeenCalledWith(
@@ -53,7 +59,7 @@ describe("googleVertexProvider", () => {
       model: "gemini-3-flash-preview",
     } as any);
 
-    const result = await googleVertexProvider.describeImage(mockParams);
+    const result = await googleVertexProvider.describeImage!(mockParams);
 
     expect(result.text).toBe("Image description");
     expect(piAi.completeSimple).toHaveBeenCalledWith(
@@ -78,7 +84,7 @@ describe("googleVertexProvider", () => {
       model: "gemini-3-flash-preview",
     } as any);
 
-    const result = await googleVertexProvider.describeVideo(mockParams);
+    const result = await googleVertexProvider.describeVideo!(mockParams);
 
     expect(result.text).toBe("Video description");
     expect(piAi.completeSimple).toHaveBeenCalledTimes(1);
@@ -103,7 +109,7 @@ describe("googleVertexProvider", () => {
       content: [],
     } as any);
 
-    await expect(googleVertexProvider.transcribeAudio(mockParams)).rejects.toThrow(
+    await expect(googleVertexProvider.transcribeAudio!(mockParams)).rejects.toThrow(
       "Audio transcription response missing text",
     );
   });
@@ -115,7 +121,7 @@ describe("googleVertexProvider", () => {
       return Promise.reject(error);
     });
 
-    await expect(googleVertexProvider.transcribeAudio(mockParams)).rejects.toThrow(
+    await expect(googleVertexProvider.transcribeAudio!(mockParams)).rejects.toThrow(
       "Audio transcription timed out after 5000ms",
     );
   });
