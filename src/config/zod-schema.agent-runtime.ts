@@ -124,9 +124,33 @@ export const SandboxDockerSchema = z
     dns: z.array(z.string()).optional(),
     extraHosts: z.array(z.string()).optional(),
     binds: z.array(z.string()).optional(),
+    envFile: z.union([z.string(), z.array(z.string())]).optional(),
   })
   .strict()
   .superRefine((data, ctx) => {
+    if (data.envFile) {
+      const files = Array.isArray(data.envFile) ? data.envFile : [data.envFile];
+      for (let i = 0; i < files.length; i += 1) {
+        const file = files[i]?.trim() ?? "";
+        if (!file) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["envFile", i],
+            message: "Sandbox security: envFile entry must be a non-empty string.",
+          });
+          continue;
+        }
+        if (!file.startsWith("/")) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["envFile", i],
+            message:
+              `Sandbox security: envFile path "${file}" is not an absolute path. ` +
+              "Only absolute POSIX paths are supported for sandbox envFile.",
+          });
+        }
+      }
+    }
     if (data.binds) {
       for (let i = 0; i < data.binds.length; i += 1) {
         const bind = data.binds[i]?.trim() ?? "";
