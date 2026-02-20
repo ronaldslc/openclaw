@@ -1,5 +1,6 @@
 import * as piAi from "@mariozechner/pi-ai";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { OpenClawConfig } from "../../../config/config.js";
 import { googleVertexProvider } from "./index.js";
 
 vi.mock("@mariozechner/pi-ai", () => ({
@@ -17,7 +18,7 @@ describe("googleVertexProvider", () => {
     model: "gemini-3-flash-preview",
     provider: "google-vertex",
     agentDir: "/tmp",
-    cfg: {} as any,
+    cfg: {} as OpenClawConfig,
   };
 
   beforeEach(() => {
@@ -32,7 +33,7 @@ describe("googleVertexProvider", () => {
     vi.mocked(piAi.completeSimple).mockResolvedValueOnce({
       content: [{ type: "text", text: "Transcribed text" }],
       model: "gemini-3-flash-preview",
-    } as any);
+    } as unknown as never);
 
     const result = await googleVertexProvider.transcribeAudio!(mockParams);
 
@@ -57,7 +58,7 @@ describe("googleVertexProvider", () => {
     vi.mocked(piAi.completeSimple).mockResolvedValueOnce({
       content: [{ type: "text", text: "Image description" }],
       model: "gemini-3-flash-preview",
-    } as any);
+    } as never);
 
     const result = await googleVertexProvider.describeImage!(mockParams);
 
@@ -82,7 +83,7 @@ describe("googleVertexProvider", () => {
     vi.mocked(piAi.completeSimple).mockResolvedValueOnce({
       content: [{ type: "text", text: "Video description" }],
       model: "gemini-3-flash-preview",
-    } as any);
+    } as never);
 
     const result = await googleVertexProvider.describeVideo!(mockParams);
 
@@ -107,7 +108,7 @@ describe("googleVertexProvider", () => {
   it("handles empty response text", async () => {
     vi.mocked(piAi.completeSimple).mockResolvedValueOnce({
       content: [],
-    } as any);
+    } as never);
 
     await expect(googleVertexProvider.transcribeAudio!(mockParams)).rejects.toThrow(
       "Audio transcription response missing text",

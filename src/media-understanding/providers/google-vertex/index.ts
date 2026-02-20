@@ -60,7 +60,9 @@ async function completeVertexMedia(params: {
     return { text, model: result.model ?? params.model };
   } catch (error: unknown) {
     if (error instanceof Error && error.name === "AbortError") {
-      throw new Error(`${params.errorLabel} timed out after ${params.timeoutMs}ms`);
+      throw new Error(`${params.errorLabel} timed out after ${params.timeoutMs}ms`, {
+        cause: error,
+      });
     }
     throw error;
   } finally {
