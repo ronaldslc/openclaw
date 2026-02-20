@@ -1,4 +1,6 @@
 import { spawn } from "node:child_process";
+import fs from "node:fs/promises";
+import dotenv from "dotenv";
 import { sanitizeEnvVars } from "./sanitize-env-vars.js";
 
 type ExecDockerRawOptions = {
@@ -391,6 +393,22 @@ export async function ensureSandboxContainer(params: {
   agentWorkspaceDir: string;
   cfg: SandboxConfig;
 }) {
+  const envFile = params.cfg.docker.envFile;
+  if (envFile) {
+    const filePaths = Array.isArray(envFile) ? envFile : [envFile];
+    for (const filePath of filePaths) {
+      if (filePath) {
+        try {
+          const content = await fs.readFile(filePath.trim(), "utf-8");
+          const parsed = dotenv.parse(content);
+          params.cfg.docker.env = { ...parsed, ...params.cfg.docker.env };
+        } catch (error) {
+          throw new Error(`Failed to read sandbox env file "${filePath}"`, { cause: error });
+        }
+      }
+    }
+  }
+
   const scopeKey = resolveSandboxScopeKey(params.cfg.scope, params.sessionKey);
   const slug = params.cfg.scope === "shared" ? "shared" : slugifySessionKey(scopeKey);
   const name = `${params.cfg.docker.containerPrefix}${slug}`;
