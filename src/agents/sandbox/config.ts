@@ -71,6 +71,19 @@ export function resolveSandboxDockerConfig(params: {
 
   const binds = [...(globalDocker?.binds ?? []), ...(agentDocker?.binds ?? [])];
 
+  const envFile = [
+    ...(Array.isArray(globalDocker?.envFile)
+      ? globalDocker.envFile
+      : globalDocker?.envFile
+        ? [globalDocker.envFile]
+        : []),
+    ...(Array.isArray(agentDocker?.envFile)
+      ? agentDocker.envFile
+      : agentDocker?.envFile
+        ? [agentDocker.envFile]
+        : []),
+  ];
+
   return {
     image: agentDocker?.image ?? globalDocker?.image ?? DEFAULT_SANDBOX_IMAGE,
     containerPrefix:
@@ -95,6 +108,7 @@ export function resolveSandboxDockerConfig(params: {
     dns: agentDocker?.dns ?? globalDocker?.dns,
     extraHosts: agentDocker?.extraHosts ?? globalDocker?.extraHosts,
     binds: binds.length ? binds : undefined,
+    envFile: envFile.length ? envFile : undefined,
   };
 }
 
